@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import tools.ECDSA;
+import tools.SHA256;
 
 /***
  * Pools for storing data sets.
@@ -89,5 +90,31 @@ public class Pools {
 			}
 		}
 		return false;
+	}
+	/***
+	 * Clear all pools except public keys.
+	 */
+	public void clearAllExPuk() {
+		this.blockMerkleTree.clear();
+		this.blocks.clear();
+		this.das.clear();
+		this.timestamp.clear();
+		this.trans.clear();
+	}
+	/***
+	 * Clone a seudo Merkle tree for test.
+	 * There are only hash in this seudo Merkle tree
+	 * @return the cloned Merkle tree.
+	 */
+	public ArrayList<ArrayList<String>> cloneSeudoMerkleTree(){
+		ArrayList<ArrayList<String>> alals = new ArrayList<ArrayList<String>>();
+		for (int i=0; i<this.blockMerkleTree.size(); i++) {
+			ArrayList<String> als =new ArrayList<String>();
+			for (int j=0; j<this.blockMerkleTree.get(i).size(); j++) {
+				als.add(this.blockMerkleTree.get(i).get(j).hash);
+			}
+			alals.add(als);
+		}
+		return alals;
 	}
 }

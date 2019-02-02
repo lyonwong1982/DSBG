@@ -31,6 +31,11 @@ public class Generator {
 //		Create 100 organizations with public keys.
 		pools.generateRandomPublicKeys(100);
 		
+//		Generate DAs during the first 3 months beginning at 2017/01/01.(1483200000000L, 1490975999999L)
+		generateDAs(1483200000000L, 1490975999999L, 20L, 30L);
+//		Generate blocks from 2017/04/01 to 2018/12/31.(1490976000000L, 1546271999999L)
+		generateBlocks(1490976000000L, 1546271999999L, 20L, 30L);
+		
 //		Test transaction verification.
 		/* Remove this comment when you want to do this test.
 		System.out.println("Now testing DM-TV");
@@ -104,7 +109,7 @@ public class Generator {
 		*/
 		
 //		Test data assets tracing.
-		/* Remove this comment when you want to do this test.*/
+		/* Remove this comment when you want to do this test.
 		System.out.println("Now testing DM-DT");
 //		Generate DAs during the first 3 months beginning at 2017/01/01.(1483200000000L, 1490975999999L)
 		generateDAs(1483200000000L, 1490975999999L, 80L, 80L);
@@ -147,10 +152,10 @@ public class Generator {
 			}
 			System.out.println(new Date().getTime() - runningTime);
 		}
-		/**/
+		*/
 		
 //		Generate block Merkle tree.
-//		generateBlockMerkleTree();
+		generateBlockMerkleTree();
 		
 //		Print generating results information in console.
 		System.out.println("***************************************************");
@@ -168,7 +173,7 @@ public class Generator {
 //		exportDataSets();		
 		
 //		Test transactions detection.
-		/* Remove this comment when you want to do this test.
+		/* Remove this comment when you want to do this test.*/
 		System.out.println("\nNow testing DM-TD");
 		int perc = 1;
 		String fault = SHA256.getSHA256Str("fault");
@@ -197,7 +202,7 @@ public class Generator {
 				int bads = 0;
 				ArrayList<Integer> hashIndex = new ArrayList<Integer>();
 				hashIndex.add(new Integer(0));
-				long runningTime = new Date().getTime();
+				long runningTime = System.nanoTime();
 				for (int i=alals.size()-1; i>=0; i--) {
 					ArrayList<Integer> index = new ArrayList<Integer>();
 					for (int j=0; j<hashIndex.size(); j++) {
@@ -213,12 +218,12 @@ public class Generator {
 						break;
 					}
 				}
-				System.out.println(new Date().getTime() - runningTime);
-				System.out.println(bads+" of "+rand.length+" bad blocks have been found!");
+				System.out.println(System.nanoTime() - runningTime);
+//				System.out.println(bads+" of "+rand.length+" bad blocks have been found!");
 			}
 		}
 		sc.close();
-		*/
+		/**/
 	}
 
 	/***

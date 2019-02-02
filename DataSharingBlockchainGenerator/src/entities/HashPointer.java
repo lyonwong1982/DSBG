@@ -58,4 +58,9 @@ public class HashPointer {
 	 * Constructor.
 	 */
 	public HashPointer() {}
+	
+	public static void main(String[] str) {
+		System.out.println(System.nanoTime());
+		System.out.println(System.currentTimeMillis());
+	}
 }

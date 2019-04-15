@@ -37,7 +37,8 @@ public class HashPointer {
 	public HashPointer(HashPointer leftChild, HashPointer rightChild) {
 		this.leftChild = leftChild;
 		this.rightChild = rightChild;
-		this.hash = SHA256.getSHA256Str(this.leftChild.toString()+this.rightChild.toString());
+//		this.hash = SHA256.getSHA256Str(SHA256.getSHA256Str(this.leftChild.toString())+SHA256.getSHA256Str(this.rightChild.toString()));
+		this.hash = SHA256.getSHA256Str(this.leftChild.hash+this.rightChild.hash);
 	}
 	/***
 	 * Constructor.
@@ -62,5 +63,6 @@ public class HashPointer {
 	public static void main(String[] str) {
 		System.out.println(System.nanoTime());
 		System.out.println(System.currentTimeMillis());
+		System.out.println(3/2);
 	}
 }

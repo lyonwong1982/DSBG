@@ -32,21 +32,24 @@ public class Generator {
 		pools.generateRandomPublicKeys(100);
 		
 //		Generate DAs during the first 3 months beginning at 2017/01/01.(1483200000000L, 1490975999999L)
-		generateDAs(1483200000000L, 1490975999999L, 20L, 30L);
+		generateDAs(1483200000000L, 1490975999999L, 80L, 80L);
 //		Generate blocks from 2017/04/01 to 2018/12/31.(1490976000000L, 1546271999999L)
-		generateBlocks(1490976000000L, 1546271999999L, 20L, 30L);
+		generateBlocks(1490976000000L, 1546271999999L, 80L, 80L);
 		
 //		Test transaction verification.
 		/* Remove this comment when you want to do this test.
-		System.out.println("Now testing DM-TV");
+		System.out.println("Now testing DB-TV");
+		String timeconsume = "";
 		for(int k=0; k<10; k++) {
 //			Generate DAs during the first 3 months beginning at 2017/01/01.(1483200000000L, 1490975999999L)
 			generateDAs(1483200000000L, 1490975999999L, 5L, 5L);
 //			Generate blocks from 2017/04/01 to 2018/12/31.(1490976000000L, 1546271999999L)
 			generateBlocks(1490976000000L, 1546271999999L, 80L, 80L);
 			int count = 0;
-			long runningTime = new Date().getTime();
+			long exceptime = 0;
+//			long runningTime = System.currentTimeMillis();
 			for(int i=0; i<pools.trans.size(); i++) {
+				System.out.println("Round " + (k+1) +" Checking transaction: " + (i+1) + "/" + pools.trans.size() +" ...");
 //				Get rid of TDREs.
 				if (pools.trans.get(i).hp.prev == null) {
 					continue;
@@ -65,6 +68,7 @@ public class Generator {
 				ArrayList<String> als = new ArrayList<String>();
 				for(int j=pools.blocks.size()-1; j>=0; j--) {
 					HashPointer thp = pools.blocks.get(j).thp;
+					long exceptimeS = System.nanoTime();
 					if(als.contains(thp.hash)) {
 						als.remove(als.indexOf(thp.hash));
 						continue;
@@ -72,14 +76,18 @@ public class Generator {
 					if(hp.hash.equals(thp.hash)) {
 						if(opuk.equals(((Transaction)thp.prev).opuk)){
 							count++;
-							break; //Pass
+							break; //Pass, but will not be reached in test.
 						}
 						else {
 							count++;
-							break; //No pass
+							break; //No pass, but will not be reached in test.
 						}
 					}
 					if(!opuk.equals(((Transaction)thp.prev).opuk)){
+//						while(((Transaction)thp.prev).hp.prev != null) {
+//							als.add(((Transaction)thp.prev).hp.hash);
+//							thp = ((Transaction)thp.prev).hp;
+//						}
 						continue;
 					}
 					boolean isChecked = false;
@@ -89,7 +97,7 @@ public class Generator {
 							break;
 						}
 						if(((Transaction)thp.prev).hp.hash.equals(drid)) {
-							isChecked = true;
+							isChecked = true; //Will not be reached in test.
 							break;
 						}
 						if(((Transaction)thp.prev).hp.prev != null) {
@@ -101,45 +109,58 @@ public class Generator {
 						count++;
 						break;
 					}
+					exceptime += (System.nanoTime() - exceptimeS);
 				}
 			}
-			System.out.print(new Date().getTime() - runningTime);
+			timeconsume += (exceptime + " ");
 			System.out.println(" Checked transactions: "+count);
 		}
+		System.out.println(timeconsume);
 		*/
 		
 //		Test data assets tracing.
 		/* Remove this comment when you want to do this test.
-		System.out.println("Now testing DM-DT");
+		System.out.println("Now testing DB-DAT");
 //		Generate DAs during the first 3 months beginning at 2017/01/01.(1483200000000L, 1490975999999L)
 		generateDAs(1483200000000L, 1490975999999L, 80L, 80L);
 //		Generate blocks from 2017/04/01 to 2018/12/31.(1490976000000L, 1546271999999L)
 		generateBlocks(1490976000000L, 1546271999999L, 5L, 5L);
-		for(int k=0; k<10; k++) {
+		for(int k=0; k<20; k++) {
 			ArrayList<String> alsT = new ArrayList<String>();
-			ArrayList<String> das =new ArrayList<String>();
+//			ArrayList<String> das =new ArrayList<String>();
+			HashMap<HashPointer,Transaction> das = new HashMap<HashPointer, Transaction>();
 //			Randomly fetch 10 DAs.
 			int[] rand = RandomNum.getRandomIntSet(1, pools.das.size()-1, 10);
 			for(int i=0; i<rand.length; i++) {
-				Iterator<HashPointer> iter = pools.das.keySet().iterator();
+//				Iterator<HashPointer> iter = pools.das.keySet().iterator();
+				Iterator<Entry<HashPointer,Transaction>> iter = pools.das.entrySet().iterator();
 				for(int j=0; j<rand[i]; j++) {
 					iter.next();
 				}
-				das.add(iter.next().hash);
+				Entry<HashPointer, Transaction> etemp = iter.next();
+				das.put(etemp.getKey(), etemp.getValue());
 			}
+//			Tracing the fetched 10 DAs.
+//			int count1 = 0;
+//			int count2 = 0;
 			long runningTime = new Date().getTime();
-			for(int j=0; j<das.size(); j++) {
+			for(Entry<HashPointer,Transaction> entry: das.entrySet()) {
 				boolean isFound = false;
 				alsT.clear();
 				for(int i=pools.blocks.size()-1; i>=0; i--) {
 					if(alsT.contains(pools.blocks.get(i).thp.hash)) {
 						alsT.remove(alsT.indexOf(pools.blocks.get(i).thp.hash));
+//						count2 ++;
 						continue;
 					}
 					HashPointer hp = pools.blocks.get(i).thp;
+					if(!((Transaction)hp.prev).opuk.equals(entry.getValue().opuk)) {
+//						count1 ++;
+						continue;
+					}
 					while(hp.prev != null) {
 						alsT.add(hp.hash);
-						if(((Transaction) hp.prev).hp.hash.equals(das.get(j))) {
+						if(((Transaction) hp.prev).hp.hash.equals(entry.getKey().hash)) {
 							isFound = true;
 							break;
 						}
@@ -150,15 +171,38 @@ public class Generator {
 					}
 				}
 			}
-			System.out.println(new Date().getTime() - runningTime);
+//			for(int j=0; j<das.size(); j++) {
+//				boolean isFound = false;
+//				alsT.clear();
+//				for(int i=pools.blocks.size()-1; i>=0; i--) {
+//					if(alsT.contains(pools.blocks.get(i).thp.hash)) {
+//						alsT.remove(alsT.indexOf(pools.blocks.get(i).thp.hash));
+//						continue;
+//					}
+//					HashPointer hp = pools.blocks.get(i).thp;
+//					while(hp.prev != null) {
+//						alsT.add(hp.hash);
+//						if(((Transaction) hp.prev).hp.hash.equals(das.get(j))) {
+//							isFound = true;
+//							break;
+//						}
+//						hp = ((Transaction)hp.prev).hp;
+//					}
+//					if (isFound) {
+//						break;
+//					}
+//				}
+//			}
+			System.out.print((new Date().getTime() - runningTime) + " ");
+//			System.out.println("\n" + count1 + ":" + count2);
 		}
 		*/
 		
-//		Generate block Merkle tree.
+//		Generate block Merkle tree. Enable this when you want to do Test transactions detection.
 		generateBlockMerkleTree();
 		
 //		Print generating results information in console.
-		System.out.println("***************************************************");
+		System.out.println("\n***************************************************");
 		System.out.println(pools.trans.size()+" transactions.");
 		System.out.println(pools.das.size()+" data assets.");
 		System.out.println(pools.blocks.size()+" blocks.");
@@ -174,28 +218,29 @@ public class Generator {
 		
 //		Test transactions detection.
 		/* Remove this comment when you want to do this test.*/
-		System.out.println("\nNow testing DM-TD");
+		System.out.println("\nNow testing DB-TD");
 		int perc = 1;
 		String fault = SHA256.getSHA256Str("fault");
 		Scanner sc = new Scanner(System.in);
 		while (true) {
-			System.out.print("Input the percentage of bad blocks (%): ");
+			System.out.print("\nInput the percentage of bad blocks (%): ");
 			perc = sc.nextInt();
 			if (perc == 0) {
 				break;
 			}
-			for(int k=0; k<10; k++) {
+			for(int k=0; k<20; k++) {
 //				Clone a seudo Merkle tree.
 				ArrayList<ArrayList<String>> alals = pools.cloneSeudoMerkleTree();
 //				Make bad blocks randomly.
-				int[] rand = RandomNum.getRandomIntSet(0, pools.blocks.size()-1, pools.blocks.size()*perc/100);
+				int[] rand = RandomNum.getRandomIntSet(0, pools.blocks.size()-1, 1);
+//				int[] rand = RandomNum.getRandomIntSet(0, pools.blocks.size()-1, pools.blocks.size()*perc/10000);
 				for (int i=0; i<rand.length; i++) {
 					alals.get(0).set(rand[i], fault);
 				}
 //				Reconstruct the seudo Merkle tree.
 				for (int i=0; i<alals.size()-1; i++) {
 					for (int j=0; j<alals.get(i).size(); j=j+2) {
-						alals.get(i+1).set((j+1)/2, SHA256.getSHA256Str(alals.get(i).get(j).toString()+alals.get(i).get(j+1).toString()));
+						alals.get(i+1).set((j+1)/2, SHA256.getSHA256Str(alals.get(i).get(j)+alals.get(i).get(j+1)));
 					}
 				}
 //				Compare with the original Merkle tree.
@@ -206,9 +251,11 @@ public class Generator {
 				for (int i=alals.size()-1; i>=0; i--) {
 					ArrayList<Integer> index = new ArrayList<Integer>();
 					for (int j=0; j<hashIndex.size(); j++) {
-						if(alals.get(i).get(hashIndex.get(j).intValue()) != pools.blockMerkleTree.get(i).get(hashIndex.get(j).intValue()).hash) {
-							index.add(new Integer(2*j));
-							index.add(new Integer(2*j+1));
+//						System.out.println(alals.get(i).get(hashIndex.get(j).intValue()));
+//						System.out.println(pools.blockMerkleTree.get(i).get(hashIndex.get(j).intValue()).hash);
+						if(!alals.get(i).get(hashIndex.get(j).intValue()).equals(pools.blockMerkleTree.get(i).get(hashIndex.get(j).intValue()).hash)) {
+							index.add(new Integer(2*hashIndex.get(j).intValue()));
+							index.add(new Integer(2*hashIndex.get(j).intValue()+1));
 						}
 					}
 					hashIndex.clear();
@@ -218,8 +265,8 @@ public class Generator {
 						break;
 					}
 				}
-				System.out.println(System.nanoTime() - runningTime);
-//				System.out.println(bads+" of "+rand.length+" bad blocks have been found!");
+				System.out.print((System.nanoTime() - runningTime)+" ");
+//				System.out.println("\n"+bads+" of "+rand.length+" bad blocks have been found!");
 			}
 		}
 		sc.close();
@@ -237,8 +284,10 @@ public class Generator {
 	private static void generateDAs(long begin, long end, long minDRs, long maxDRs) {
 		//Clear all pools except puks.
 		pools.clearAllExPuk();
+		int count = 0;
 		for (Entry<String, String> entry : pools.puks.entrySet()) {
-			for (long i = 0; i < RandomNum.getRandomInt(minDRs, maxDRs); i++) {
+			System.out.println("generating DAs: " + ++count + "/" + pools.puks.entrySet().size());
+			for (long i = 0; i < RandomNum.getRandomInt(minDRs, maxDRs); i++) {//
 				// Create DR
 				HashPointer drid = new HashPointer();
 				do {
@@ -282,7 +331,9 @@ public class Generator {
 	 * @param maxOrgs the maximum of organizations.
 	 */
 	private static void generateBlocks(long begin, long end, long minOrgs, long maxOrgs) {
+		int count = 0;
 		for(Entry<HashPointer, Transaction> entry : pools.das.entrySet()) {
+			System.out.println("generating Blocks: " + ++count + "/" + pools.das.entrySet().size());
 			long bts = begin;
 			long ets = end;
 			for (long i=0; i<RandomNum.getRandomInt(minOrgs, maxOrgs); i++) {

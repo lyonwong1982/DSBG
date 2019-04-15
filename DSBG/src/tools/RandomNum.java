@@ -17,7 +17,7 @@ public class RandomNum {
 	 */
 	public static long getRandomInt(long min, long max) {
 		Random random = new Random();
-		long randomNum = min + (((long) (random.nextDouble() * (max - min))));
+		long randomNum = min + (((long) (random.nextDouble() * (max - min + 1))));
 		return randomNum;
 	}
 	/***
@@ -31,7 +31,7 @@ public class RandomNum {
 		Random random = new Random();
 		int[] randomNumSet = new int[size];
 		for(int i=0; i<size; i++) {
-			randomNumSet[i] = min + (((int) (random.nextDouble() * (max-min))));
+			randomNumSet[i] = min + (((int) (random.nextDouble() * (max - min + 1))));
 			for(int j=0; j<i; j++) {
 				if(randomNumSet[j] == randomNumSet[i]) {
 					i--;
